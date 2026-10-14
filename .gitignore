@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+
+# Build artifacts
+dist/
+build/
+target/
+*.jar
+*.war
+
+# Environment & temporary
+.env
+.env.local
+*.log
+npm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+
+# OS metadata
+.DS_Store
+Thumbs.db

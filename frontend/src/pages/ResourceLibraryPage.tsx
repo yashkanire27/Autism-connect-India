@@ -1,0 +1,146 @@
+import React, { useState } from 'react';
+import { Search, BookOpen, Clock, ArrowRight, Bookmark, Sparkles, Filter } from 'lucide-react';
+import { PageView, ResourceItem } from '../types';
+import { mockResources } from '../data/mockData';
+
+interface ResourceLibraryPageProps {
+  onNavigate: (view: PageView) => void;
+  onOpenDetailModal: (resource: ResourceItem) => void;
+  onShowToast: (title: string, message: string) => void;
+}
+
+export const ResourceLibraryPage: React.FC<ResourceLibraryPageProps> = ({
+  onNavigate,
+  onOpenDetailModal,
+  onShowToast,
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+
+  const categories = ['All', 'Autism Basics', 'Early Signs', 'Parenting', 'Education', 'Therapy', 'Government Resources'];
+
+  const filteredResources = mockResources.filter((res) => {
+    const matchesCategory = selectedCategory === 'All' || res.category === selectedCategory;
+    const matchesSearch =
+      res.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      res.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      res.author.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const toggleBookmark = (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (savedIds.includes(id)) {
+      setSavedIds(savedIds.filter((item) => item !== id));
+      onShowToast('Bookmark Removed 🔖', `Removed "${title.substring(0, 25)}..."`);
+    } else {
+      setSavedIds([...savedIds, id]);
+      onShowToast('Saved to Dashboard 🔖', `Bookmarked "${title.substring(0, 25)}..."`);
+    }
+  };
+
+  return (
+    <div className="py-12 bg-white min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100 text-purple-800 text-xs font-bold uppercase tracking-wider">
+            <BookOpen className="w-3.5 h-3.5 text-purple-600" />
+            <span>Complete Resource Library</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Learn. Understand. Take action.
+          </h1>
+          <p className="text-base text-slate-600">
+            Explore compassionate, evidence-based autism guides, early sensory signs, therapy expectations, and legal disability rights.
+          </p>
+
+          <div className="pt-4 max-w-xl mx-auto relative">
+            <Search className="w-5 h-5 text-purple-600 absolute left-4 top-4" />
+            <input
+              type="text"
+              placeholder="Search articles, therapies, IEP guides..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-purple-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* Categories */}
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
+                selectedCategory === cat
+                  ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-200'
+                  : 'bg-cream-50 text-slate-700 border-purple-100 hover:bg-purple-50'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Directory Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredResources.map((res) => {
+            const isSaved = savedIds.includes(res.id);
+
+            return (
+              <div
+                key={res.id}
+                onClick={() => onOpenDetailModal(res)}
+                className="p-7 rounded-4xl bg-cream-50 hover:bg-white border border-purple-100 hover:border-purple-200 shadow-soft hover:shadow-soft-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col justify-between group"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                      {res.category}
+                    </span>
+
+                    <button
+                      onClick={(e) => toggleBookmark(res.id, res.title, e)}
+                      className={`p-2 rounded-full transition-colors ${
+                        isSaved
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-400 hover:text-purple-600 hover:bg-purple-50'
+                      }`}
+                    >
+                      <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-white' : ''}`} />
+                    </button>
+                  </div>
+
+                  <h2 className="text-lg font-bold text-slate-900 group-hover:text-purple-700 transition-colors leading-snug line-clamp-2">
+                    {res.title}
+                  </h2>
+
+                  <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                    {res.description}
+                  </p>
+                </div>
+
+                <div className="pt-6 mt-6 border-t border-purple-100/80 flex items-center justify-between text-xs text-slate-500">
+                  <span className="flex items-center gap-1 text-slate-400 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-purple-500" />
+                    {res.readTime}
+                  </span>
+
+                  <span className="text-purple-700 font-extrabold flex items-center gap-1 group-hover:underline">
+                    Read Guide
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
+};
